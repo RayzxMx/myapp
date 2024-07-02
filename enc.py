@@ -14,8 +14,9 @@ def get_image_download_link(img, filename, text):
     return href
 
 #Fungsi untuk menghitung kapasitas penyimpanan gambar cover
-def calculate_capacity(image):
-    if image.mode != 'RGB':
+def calculate_capacity(image_path):
+    image = Image.open(image_path)
+    if image.mode == 'RGBA':
         image = image.convert('RGB')
     width, height = image.size
     total_capacity_bits = width * height * 3
