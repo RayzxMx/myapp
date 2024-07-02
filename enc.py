@@ -37,30 +37,16 @@ def image_to_base64(image_path):
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     return encoded_string
 
-def base64_to_image(encoded_string, output_image_path):
-    decoded_bytes = base64.b64decode(encoded_string)
-    with open(output_image_path, "wb") as image_file:
-        image_file.write(decoded_bytes)
-
 def pdf_to_base64(pdf_path):
     with open(pdf_path, "rb") as pdf_file:
         encoded_string = base64.b64encode(pdf_file.read()).decode('utf-8')
     return encoded_string
-
-def base64_to_pdf(encoded_string, output_pdf_path):
-    decoded_bytes = base64.b64decode(encoded_string)
-    with open(output_pdf_path, "wb") as pdf_file:
-        pdf_file.write(decoded_bytes)
 
 def int_to_binary_string(number, bits):
     return format(number, f'0{bits}b')
 
 def string_to_binary(data):
     return ''.join(format(ord(char), '08b') for char in data)
-
-def binary_to_string(binary_data):
-    chars = [binary_data[i:i+8] for i in range(0, len(binary_data), 8)]
-    return ''.join(chr(int(char, 2)) for char in chars)
 
 def encode_image(cover_image_path, input_file_path):
     cover_image = Image.open(cover_image_path)
@@ -69,11 +55,12 @@ def encode_image(cover_image_path, input_file_path):
 
     cover_pixels = np.array(cover_image)
     cover_height, cover_width, _ = cover_pixels.shape
-
-    if input_file_path.type != 'application/pdf':
+    file_extension = os.path.splitext(input_file_path)[1].lower()
+    
+    if file_extension in ['.png', '.jpg', '.jpeg', '.bmp', '.gif']:
         file_type = 'G'
         hidden_image = Image.open(input_file_path)
-        if hidden_image.mode != 'RGB':
+        if hidden_image.mode == 'RGBA':
             hidden_image = hidden_image.convert('RGB')
         hidden_base64 = image_to_base64(input_file_path)
         
@@ -82,7 +69,7 @@ def encode_image(cover_image_path, input_file_path):
         hidden_height_binary = int_to_binary_string(hidden_height, 16)
         combined_binary = '0' + string_to_binary(file_type) + hidden_width_binary + hidden_height_binary + string_to_binary(hidden_base64) + '1111111111111110'  # End of message delimiter
 
-    elif input_file_path.type == 'application/pdf':
+    elif file_extension == '.pdf':
         file_type = 'P'
         pdf_base64 = pdf_to_base64(input_file_path)
         combined_binary = '0' + string_to_binary(file_type) + string_to_binary(pdf_base64) + '1111111111111110'  # End of message delimiter
