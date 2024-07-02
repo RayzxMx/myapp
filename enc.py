@@ -25,7 +25,7 @@ def calculate_capacity(image):
 # Fungsi untuk menyesuaikan ukuran gambar hidden agar tidak melebihi ukuran gambar cover
 def resize_image(input_image_path, output_image_path, new_width, new_height):
     image = Image.open(input_image_path)
-    if image.mode == 'RGBA':
+    if image.mode != 'RGB':
         image = image.convert('RGB')
     resized_image = image.resize((new_width, new_height))
     resized_image.save(output_image_path)
@@ -63,7 +63,7 @@ def binary_to_string(binary_data):
 
 def encode_image(cover_image_path, input_file_path, output_image_path):
     cover_image = Image.open(cover_image_path)
-    if cover_image.mode == 'RGBA':
+    if cover_image.mode != 'RGB':
         cover_image = cover_image.convert('RGB')
 
     cover_pixels = np.array(cover_image)
@@ -74,7 +74,7 @@ def encode_image(cover_image_path, input_file_path, output_image_path):
     if file_extension in ['.png', '.jpg', '.jpeg', '.bmp', '.gif']:
         file_type = 'G'
         hidden_image = Image.open(input_file_path)
-        if hidden_image.mode == 'RGBA':
+        if hidden_image.mode != 'RGB':
             hidden_image = hidden_image.convert('RGB')
         hidden_base64 = image_to_base64(input_file_path)
         
