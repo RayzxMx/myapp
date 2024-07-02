@@ -1,11 +1,8 @@
 import streamlit as st 
 from PIL import Image
-from PIL import ImageEnhance
 import numpy as np
 import base64
 from io import BytesIO
-from pdf2image import convert_from_path  
-import tempfile
 import os
 
 # Fungsi untuk mendownload gambar stego ke dalam bentuk 'PNG'
@@ -15,23 +12,54 @@ def get_image_download_link(img, filename, text):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     href = f'<a href="data:image/png;base64,{img_str}" download="{filename}">{text}</a>'
     return href
+#Fungsi untuk menghitung kapasitas penyimpanan gambar cover
+def calculate_capacity(image_path):
+    image = Image.open(image_path)
+    if image.mode == 'RGBA':
+        image = image.convert('RGB')
+    width, height = image.size
+    total_capacity_bits = width * height * 3
+    total_capacity_bytes = total_capacity_bits // 8
+    return width, height, total_capacity_bits, total_capacity_bytes
 
-# Fungsi untuk menyesuaikan ukuran cover dengan ukuran message
-def resize_image(cover, message):
-    if message.mode != 'RGB':
-        message = message.convert('RGB')
-    return cover.resize(message.size)
+# Fungsi untuk menyesuaikan ukuran gambar hidden agar tidak melebihi ukuran gambar cover
+def resize_image(input_image_path, output_image_path, new_width, new_height):
+    image = Image.open(input_image_path)
+    if image.mode == 'RGBA':
+        image = image.convert('RGB')
+    resized_image = image.resize((new_width, new_height))
+    resized_image.save(output_image_path)
+    return new_width, new_height
 
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+    return encoded_string
 
-def handlePdf(cover_file):
-    with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as temp_pdf:
-                temp_pdf.write(cover_file.read())
-                cover_images = convert_from_path(temp_pdf.name, dpi=200)  # Use temporary file path
-                cover = cover_images[0]
-                os.remove(temp_pdf.name)  # Import os for file deletion
-                return cover;
+def base64_to_image(encoded_string, output_image_path):
+    decoded_bytes = base64.b64decode(encoded_string)
+    with open(output_image_path, "wb") as image_file:
+        image_file.write(decoded_bytes)
 
+def pdf_to_base64(pdf_path):
+    with open(pdf_path, "rb") as pdf_file:
+        encoded_string = base64.b64encode(pdf_file.read()).decode('utf-8')
+    return encoded_string
 
+def base64_to_pdf(encoded_string, output_pdf_path):
+    decoded_bytes = base64.b64decode(encoded_string)
+    with open(output_pdf_path, "wb") as pdf_file:
+        pdf_file.write(decoded_bytes)
+
+def int_to_binary_string(number, bits):
+    return format(number, f'0{bits}b')
+
+def string_to_binary(data):
+    return ''.join(format(ord(char), '08b') for char in data)
+
+def binary_to_string(binary_data):
+    chars = [binary_data[i:i+8] for i in range(0, len(binary_data), 8)]
+    return ''.join(chr(int(char, 2)) for char in chars)
 
 # Fungsi enkripsi gambar
 def encryptPage():
@@ -40,60 +68,58 @@ def encryptPage():
     cover_file = st.file_uploader('', type=['png', 'jpg', 'bmp'], key="cover")
     if cover_file is not None:
         cover = Image.open(cover_file)
-        if cover.mode != 'RGB':
+        if cover.mode == 'RGBA':
             cover = cover.convert('RGB')
+        cover_pixels = np.array(cover)
+        cover_height, cover_width, _ = cover_pixels.shape
+
         # Unggah gambar pesan
         st.markdown("<h4 style='text-align: left;'>Upload File</h4>", unsafe_allow_html=True)
         message_file = st.file_uploader('', type=['png', 'jpg', 'bmp' , 'pdf'], key="message")
         if message_file is not None:
             if message_file.type == 'application/pdf':
-                message = handlePdf(message_file)
+                file_type = 'P'
+                pdf_base64 = pdf_to_base64(message_file)
+                combined_binary = '0' + string_to_binary(file_type) + string_to_binary(pdf_base64) + '1111111111111110'  # End of message delimiter
             else:
-                message = Image.open(message_file)
+                file_type = 'G'
+                hidden_image = Image.open(message_file)
+                if hidden_image.mode == 'RGBA':
+                    hidden_image = hidden_image.convert('RGB')
+                    hidden_base64 = image_to_base64(message_file)
+                    hidden_width, hidden_height = hidden_image.size
+                    hidden_width_binary = int_to_binary_string(hidden_width, 16)
+                    hidden_height_binary = int_to_binary_string(hidden_height, 16)
+                    combined_binary = '0' + string_to_binary(file_type) + hidden_width_binary + hidden_height_binary + string_to_binary(hidden_base64) + '1111111111111110'  # End of message delimiter
+            
+            # Ensure the hidden data can fit within the cover image
+            if len(combined_binary) > cover_height * cover_width * 3:
+                raise ValueError("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
 
-            # Mengecek apakah gambar dalam format CMYK atau RGB
-            if message.mode == 'CMYK':
-                # Mengonversi ke RGB jika gambar dalam format CMYK
-                message = message.convert('RGB')
+            data_index = 0
+            binary_message_length = len(combined_binary)
 
-            # Reduce the contrast of the message image
-            # enhancer = ImageEnhance.Contrast(message)
-            # message = enhancer.enhance(0.1)
+            for y in range(cover_height):
+                for x in range(cover_width):
+                    if data_index < binary_message_length:
+                        r, g, b = cover_pixels[y, x][:3]
 
-            # Menyamakan ukuran gambar cover dengan gambar pesan
-            cover = resize_image(cover, message)
-            message = resize_image(message, cover) 
+                        r = (r & ~1) | int(combined_binary[data_index])
+                        data_index += 1
+                        if data_index < binary_message_length:
+                            g = (g & ~1) | int(combined_binary[data_index])
+                            data_index += 1
+                        if data_index < binary_message_length:
+                            b = (b & ~1) | int(combined_binary[data_index])
+                            data_index += 1
 
-            # Ubah ke array untuk manipulasi
-            cover = np.array(cover, dtype=np.uint8)
-            message = np.array(message, dtype=np.uint8)
-
-            # "Imbed" adalah jumlah bit dari gambar pesan yang akan disematkan dalam gambar sampul
-            imbed = 4
-
-            # Menggeser gambar pesan sebanyak (8 - imbed) bit ke kanan
-            messageshift = np.right_shift(message, 8 - imbed)
-
-            # Tampilkan gambar pesan hanya dengan bit yang disematkan di layar
-            # Harus digeser dari LSB (bit paling rendah) ke MSB (bit paling tinggi)
-            showmess = messageshift << (8-imbed)
-
-            # Display the showmess image
-            st.image(showmess, caption='This is your message image with the embedded bits')
-
-            # Sekarang, ubah nilai bit yang disematkan menjadi nol pada gambar sampul
-            coverzero = cover & ~(0b11111111 >> imbed)
-         
-            # Sekarang tambahkan gambar pesan dan gambar sampul
-            stego = coverzero | messageshift
-
-            stego = np.clip(stego, 0, 255)
-
+                        cover_pixels[y, x] = [r, g, b]
+                        
             # Tampilkan gambar stego
-            st.image(stego, caption='This is your stego image', channels='GRAY')
+            st.image(cover_pixels, caption='This is your stego image', channels='GRAY')
 
             # Ubah kembali array stego menjadi gambar
-            stego_img = Image.fromarray(stego.astype(np.uint8))
+            stego_img = Image.fromarray(cover_pixels)
 
             stego_img.save('stego.png')
 
