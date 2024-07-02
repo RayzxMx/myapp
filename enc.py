@@ -38,8 +38,8 @@ def image_to_base64(image_path):
     return encoded_string
 
 def pdf_to_base64(pdf_path):
-    with open(pdf_path, "rb") as pdf_file:
-        encoded_string = base64.b64encode(pdf_file.read()).decode('utf-8')
+    #with open(pdf_path, "rb") as pdf_file:
+    encoded_string = base64.b64encode(pdf_path.read()).decode('utf-8')
     return encoded_string
 
 def int_to_binary_string(number, bits):
