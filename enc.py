@@ -91,11 +91,10 @@ def encryptPage():
                     hidden_width_binary = int_to_binary_string(hidden_width, 16)
                     hidden_height_binary = int_to_binary_string(hidden_height, 16)
                     combined_binary = '0' + string_to_binary(file_type) + hidden_width_binary + hidden_height_binary + string_to_binary(hidden_base64) + '1111111111111110'  # End of message delimiter
+                    # Ensure the hidden data can fit within the cover image
+                    if len(combined_binary) > cover_height * cover_width * 3:
+                        raise ValueError("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
             
-            # Ensure the hidden data can fit within the cover image
-            if len(combined_binary) > cover_height * cover_width * 3:
-                raise ValueError("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
-
             data_index = 0
             binary_message_length = len(combined_binary)
 
@@ -114,7 +113,7 @@ def encryptPage():
                             data_index += 1
 
                         cover_pixels[y, x] = [r, g, b]
-                        
+
             # Tampilkan gambar stego
             st.image(cover_pixels, caption='This is your stego image', channels='GRAY')
 
