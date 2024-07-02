@@ -84,7 +84,7 @@ def encryptPage():
         if message_file is not None:
             #Deklarasi variabel kombinasi data biner
             combined_binary = ''
-
+            encode_pixels = ''
             #Cek tipe file
             if message_file.type == 'application/pdf':
                 #Tipe file PDF
@@ -122,7 +122,7 @@ def encryptPage():
                     
             # Ensure the hidden data can fit within the cover image
             if len(combined_binary) > cover_height * cover_width * 3:
-                raise ValueError("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
+                st.write("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
             data_index = 0
             binary_message_length = len(combined_binary)
 
