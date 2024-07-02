@@ -73,9 +73,7 @@ def decryptPage():
     st.markdown("<h4 style='text-align: left;'>Upload Stego Image</h4>", unsafe_allow_html=True)
     stego_file = st.file_uploader('', type=['png', 'jpg', 'bmp', 'tiff'],key="decrypt")
     if stego_file is not None:
-        encoded_image_path = Image.open(stego_file)
-
-        extracted_message, mode = extract_hidden_data(encoded_image_path)
+        extracted_message, mode = extract_hidden_data(stego_file)
 
         if mode == 'G':
             # Tampilkan gambar akhir
