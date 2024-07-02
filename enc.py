@@ -28,12 +28,10 @@ def resize_image(input_image_path, output_image_path, new_width, new_height):
     if image.mode == 'RGBA':
         image = image.convert('RGB')
     resized_image = image.resize((new_width, new_height))
-    resized_image.save(output_image_path)
     return new_width, new_height
 
 def image_to_base64(image_path):
-    with open(image_path, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+    encoded_string = base64.b64encode(image_path.read()).decode('utf-8')
     return encoded_string
 
 def base64_to_image(encoded_string, output_image_path):
