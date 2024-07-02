@@ -88,7 +88,7 @@ def decryptPage():
             pdf_file_path = "hidden_message.pdf"
             with open(pdf_file_path, "wb") as f:
                 f.write(extracted_message)
-            st.markdown(f'<embed src="{pdf_file_path}" width="800" height="600" type="application/pdf">', unsafe_allow_html=True)
+            #st.markdown(f'<embed src="{pdf_file_path}" width="800" height="600" type="application/pdf">', unsafe_allow_html=True)
             st.markdown(get_pdf_download_link(extracted_message, 'result.pdf', 'Download extracted image'), unsafe_allow_html=True)
 
 if __name__ == "__main__":
