@@ -62,7 +62,7 @@ def binary_to_string(binary_data):
     chars = [binary_data[i:i+8] for i in range(0, len(binary_data), 8)]
     return ''.join(chr(int(char, 2)) for char in chars)
 
-def encode_image(cover_image_path, input_file_path, output_image_path):
+def encode_image(cover_image_path, input_file_path):
     cover_image = Image.open(cover_image_path)
     if cover_image.mode != 'RGB':
         cover_image = cover_image.convert('RGB')
@@ -70,9 +70,7 @@ def encode_image(cover_image_path, input_file_path, output_image_path):
     cover_pixels = np.array(cover_image)
     cover_height, cover_width, _ = cover_pixels.shape
 
-    file_extension = os.path.splitext(input_file_path)[1].lower()
-    
-    if file_extension in ['.png', '.jpg', '.jpeg', '.bmp', '.gif']:
+    if input_file_path.type != 'application/pdf':
         file_type = 'G'
         hidden_image = Image.open(input_file_path)
         if hidden_image.mode != 'RGB':
@@ -84,7 +82,7 @@ def encode_image(cover_image_path, input_file_path, output_image_path):
         hidden_height_binary = int_to_binary_string(hidden_height, 16)
         combined_binary = '0' + string_to_binary(file_type) + hidden_width_binary + hidden_height_binary + string_to_binary(hidden_base64) + '1111111111111110'  # End of message delimiter
 
-    elif file_extension == '.pdf':
+    elif input_file_path.type != 'application/pdf':
         file_type = 'P'
         pdf_base64 = pdf_to_base64(input_file_path)
         combined_binary = '0' + string_to_binary(file_type) + string_to_binary(pdf_base64) + '1111111111111110'  # End of message delimiter
@@ -144,7 +142,7 @@ def encryptPage():
                 resize_image(message_file, resized_hidden_image_path, new_hidden_width, new_hidden_height)
                 message_file = resized_hidden_image_path
 
-            cover_pixels = encode_image(cover_file, message_file, 'encoded_image.png')
+            cover_pixels = encode_image(cover_file, message_file)
             encoded_image = Image.fromarray(cover_pixels)
             encoded_image.save('stego.png')
             # Tampilkan gambar stego
