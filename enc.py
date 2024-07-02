@@ -30,7 +30,8 @@ def resize_image(image, new_width, new_height):
     return resized_image, new_width, new_height
 
 def image_to_base64(image):
-    encoded_string = base64.b64encode(image).decode('utf-8')
+    image_bytes = image.read()  # Read the file as bytes
+    encoded_string = base64.b64encode(image_bytes).decode('utf-8')
     return encoded_string
 
 def base64_to_image(encoded_string, output_image_path):
