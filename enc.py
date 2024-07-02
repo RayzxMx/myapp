@@ -76,6 +76,7 @@ def encryptPage():
         # Unggah gambar pesan
         st.markdown("<h4 style='text-align: left;'>Upload File</h4>", unsafe_allow_html=True)
         message_file = st.file_uploader('', type=['png', 'jpg', 'bmp' , 'pdf'], key="message")
+        combined_binary = ''
         if message_file is not None:
             if message_file.type == 'application/pdf':
                 file_type = 'P'
@@ -91,10 +92,10 @@ def encryptPage():
                     hidden_width_binary = int_to_binary_string(hidden_width, 16)
                     hidden_height_binary = int_to_binary_string(hidden_height, 16)
                     combined_binary = '0' + string_to_binary(file_type) + hidden_width_binary + hidden_height_binary + string_to_binary(hidden_base64) + '1111111111111110'  # End of message delimiter
-                    # Ensure the hidden data can fit within the cover image
-                    if len(combined_binary) > cover_height * cover_width * 3:
-                        raise ValueError("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
-            
+                    
+            # Ensure the hidden data can fit within the cover image
+            if len(combined_binary) > cover_height * cover_width * 3:
+                raise ValueError("Ukuran data tersembunyi terlalu besar untuk disisipkan ke dalam gambar cover.")
             data_index = 0
             binary_message_length = len(combined_binary)
 
