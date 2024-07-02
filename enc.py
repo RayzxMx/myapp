@@ -129,7 +129,7 @@ def encryptPage():
         st.markdown("<h4 style='text-align: left;'>Upload File</h4>", unsafe_allow_html=True)
         message_file = st.file_uploader('', type=['png', 'jpg', 'bmp' , 'pdf'], key="message")
         if message_file is not None:
-            if message_file.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+            if message_file.type != 'application/pdf':
                 hidden_image = Image.open(message_file)
                 if hidden_image.mode == 'RGBA':
                     hidden_image = hidden_image.convert('RGB')
