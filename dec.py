@@ -7,6 +7,8 @@ from io import BytesIO
 # Fungsi untuk mendownload gambar stego ke dalam bentuk 'JPG'
 def get_image_download_link(img, filename, text):
     buffered = BytesIO()
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
     img.save(buffered, format='JPEG')  # Gunakan 'JPEG' sebagai format penyimpanan
     img_str = base64.b64encode(buffered.getvalue()).decode()
     href = f'<a href="data:image/jpeg;base64,{img_str}" download="{filename}">{text}</a>'  # Use 'image/jpeg' as the MIME type
@@ -55,12 +57,15 @@ def extract_hidden_data(encoded_image_path):
         # Make sure to decode the base64 string
         hidden_base64 = binary_to_string(binary_data)
         decoded_bytes = base64.b64decode(hidden_base64)
-        return decoded_bytes, mode
+
+        # Convert the decoded bytes back to an image
+        hidden_image = Image.open(BytesIO(decoded_bytes))
+        return hidden_image, mode
         
     elif file_type == 'P':
         mode = 'P'
         pdf_base64 = binary_to_string(binary_data)
-        decoded_bytes = base64.b64decode(hidden_base64)
+        decoded_bytes = base64.b64decode(pdf_base64)
         return decoded_bytes, mode
         
     else:
@@ -84,5 +89,7 @@ def decryptPage():
             with open(pdf_file_path, "wb") as f:
                 f.write(extracted_message)
             st.markdown(f'<embed src="{pdf_file_path}" width="800" height="600" type="application/pdf">', unsafe_allow_html=True)
-            st.markdown(get_pdf_download_link(extracted_message, 'result.jpg', 'Download extracted image'), unsafe_allow_html=True)
-        
+            st.markdown(get_pdf_download_link(extracted_message, 'result.pdf', 'Download extracted image'), unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    decryptPage()
