@@ -123,14 +123,12 @@ def encryptPage():
     cover_file = st.file_uploader('', type=['png', 'jpg', 'bmp'], key="cover")
     
     if cover_file is not None:
-        cover_image_path = cover_file
+        cover_width, cover_height, total_capacity_bits, total_capacity_bytes = calculate_capacity(cover_file)
         # Unggah gambar pesan
         st.markdown("<h4 style='text-align: left;'>Upload File</h4>", unsafe_allow_html=True)
         message_file = st.file_uploader('', type=['png', 'jpg', 'bmp' , 'pdf'], key="message")
         if message_file is not None:
-            input_file_path = message_file
-            cover_width, cover_height, total_capacity_bits, total_capacity_bytes = calculate_capacity(cover_image_path)
-            hidden_image = Image.open(input_file_path)
+            hidden_image = Image.open(message_file)
             if hidden_image.mode == 'RGBA':
                 hidden_image = hidden_image.convert('RGB')
             hidden_width, hidden_height = hidden_image.size
@@ -141,10 +139,10 @@ def encryptPage():
             new_hidden_height = int(new_hidden_width / hidden_aspect_ratio)
 
             resized_hidden_image_path = 'resized_hidden_image.png'
-            resize_image(input_file_path, resized_hidden_image_path, new_hidden_width, new_hidden_height)
-            input_file_path = resized_hidden_image_path
+            resize_image(message_file, resized_hidden_image_path, new_hidden_width, new_hidden_height)
+            message_file = resized_hidden_image_path
 
-            cover_pixels = encode_image(cover_image_path, input_file_path, 'encoded_image.png')
+            cover_pixels = encode_image(cover_file, message_file, 'encoded_image.png')
             encoded_image = Image.fromarray(cover_pixels)
             encoded_image.save('stego.png')
             # Tampilkan gambar stego
