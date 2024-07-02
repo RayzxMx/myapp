@@ -110,7 +110,7 @@ def encryptPage():
                 new_hidden_height = int(new_hidden_width / hidden_aspect_ratio)
 
                 #Ubah ukuran gambar hidden
-                resized_image, _, _ = resize_image(hidden_image, new_hidden_width, new_hidden_height)
+                resized_image = resize_image(hidden_image, new_hidden_width, new_hidden_height)
 
                 #Ubah Gambar ke base64
                 hidden_base64 = image_to_base64(resized_image)
