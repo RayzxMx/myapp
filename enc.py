@@ -27,7 +27,7 @@ def resize_image(image, new_width, new_height):
     if image.mode == 'RGBA':
         image = image.convert('RGB')
     resized_image = image.resize((new_width, new_height))
-    return resized_image, new_width, new_height
+    return resized_image
 
 def image_to_base64(image):
     image_bytes = image.read()  # Read the file as bytes
