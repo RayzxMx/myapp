@@ -129,19 +129,20 @@ def encryptPage():
         st.markdown("<h4 style='text-align: left;'>Upload File</h4>", unsafe_allow_html=True)
         message_file = st.file_uploader('', type=['png', 'jpg', 'bmp' , 'pdf'], key="message")
         if message_file is not None:
-            hidden_image = Image.open(message_file)
-            if hidden_image.mode == 'RGBA':
-                hidden_image = hidden_image.convert('RGB')
-            hidden_width, hidden_height = hidden_image.size
-            hidden_aspect_ratio = hidden_width / hidden_height
+            if message_file.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                hidden_image = Image.open(message_file)
+                if hidden_image.mode == 'RGBA':
+                    hidden_image = hidden_image.convert('RGB')
+                hidden_width, hidden_height = hidden_image.size
+                hidden_aspect_ratio = hidden_width / hidden_height
 
-            max_hidden_pixels = total_capacity_bits // 24 // 4
-            new_hidden_width = int((max_hidden_pixels * hidden_aspect_ratio) ** 0.5)
-            new_hidden_height = int(new_hidden_width / hidden_aspect_ratio)
+                max_hidden_pixels = total_capacity_bits // 24 // 4
+                new_hidden_width = int((max_hidden_pixels * hidden_aspect_ratio) ** 0.5)
+                new_hidden_height = int(new_hidden_width / hidden_aspect_ratio)
 
-            resized_hidden_image_path = 'resized_hidden_image.png'
-            resize_image(message_file, resized_hidden_image_path, new_hidden_width, new_hidden_height)
-            message_file = resized_hidden_image_path
+                resized_hidden_image_path = 'resized_hidden_image.png'
+                resize_image(message_file, resized_hidden_image_path, new_hidden_width, new_hidden_height)
+                message_file = resized_hidden_image_path
 
             cover_pixels = encode_image(cover_file, message_file, 'encoded_image.png')
             encoded_image = Image.fromarray(cover_pixels)
