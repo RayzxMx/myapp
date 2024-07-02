@@ -82,7 +82,7 @@ def encode_image(cover_image_path, input_file_path):
         hidden_height_binary = int_to_binary_string(hidden_height, 16)
         combined_binary = '0' + string_to_binary(file_type) + hidden_width_binary + hidden_height_binary + string_to_binary(hidden_base64) + '1111111111111110'  # End of message delimiter
 
-    elif input_file_path.type != 'application/pdf':
+    elif input_file_path.type == 'application/pdf':
         file_type = 'P'
         pdf_base64 = pdf_to_base64(input_file_path)
         combined_binary = '0' + string_to_binary(file_type) + string_to_binary(pdf_base64) + '1111111111111110'  # End of message delimiter
