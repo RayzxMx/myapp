@@ -74,22 +74,29 @@ def extract_hidden_data(encoded_image_path):
 # Fungsi dekripsi gambar
 def decryptPage():
     st.markdown("<h4 style='text-align: left;'>Upload Stego Image</h4>", unsafe_allow_html=True)
-    stego_file = st.file_uploader('', type=['png', 'jpg', 'bmp', 'tiff'],key="decrypt")
-    if stego_file is not None:
-        extracted_message, mode = extract_hidden_data(stego_file)
+    
+    # Input field untuk password
+    password = st.text_input("Masukkan password untuk dekripsi", type="password")
+    
+    if password == "admin1234":
+        st.success("Password benar! Silakan upload gambar untuk didekripsi.")
+        stego_file = st.file_uploader('', type=['png', 'jpg', 'bmp', 'tiff'], key="decrypt")
+        if stego_file is not None:
+            extracted_message, mode = extract_hidden_data(stego_file)
 
-        if mode == 'G':
-            # Tampilkan gambar akhir
-            st.image(extracted_message, caption='This is your hidden message')
-            # Tambahkan link download
-            st.markdown(get_image_download_link(extracted_message, 'result.jpg', 'Download extracted image'), unsafe_allow_html=True)
+            if mode == 'G':
+                # Tampilkan gambar akhir
+                st.image(extracted_message, caption='This is your hidden message')
+                # Tambahkan link download
+                st.markdown(get_image_download_link(extracted_message, 'result.jpg', 'Download extracted image'), unsafe_allow_html=True)
 
-        else:
-            pdf_file_path = "hidden_message.pdf"
-            with open(pdf_file_path, "wb") as f:
-                f.write(extracted_message)
-            #st.markdown(f'<embed src="{pdf_file_path}" width="800" height="600" type="application/pdf">', unsafe_allow_html=True)
-            st.markdown(get_pdf_download_link(extracted_message, 'result.pdf', 'Download extracted image'), unsafe_allow_html=True)
+            else:
+                pdf_file_path = "hidden_message.pdf"
+                with open(pdf_file_path, "wb") as f:
+                    f.write(extracted_message)
+                st.markdown(get_pdf_download_link(extracted_message, 'result.pdf', 'Download extracted PDF'), unsafe_allow_html=True)
+    elif password:
+        st.error("Password salah! Silakan coba lagi.")
 
 if __name__ == "__main__":
     decryptPage()
